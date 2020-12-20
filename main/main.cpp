@@ -54,5 +54,13 @@ int main(){
 	}
 	return 0;
 
-	
+	/*Filling the multistack with values from 1 to 10...
+First stack is: full.
+Getting element from first stack...
+Element from first stack equals: 5
+First stack is: full.
+Second stack is: full.
+Getting element from second stack...
+Element from second stack equals: 10
+First stack is: full.*/
 }
