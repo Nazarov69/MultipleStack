@@ -1,207 +1,175 @@
-#ifndef _MultiStack_
-#define _MultiStack_
-#include <iostream>
-#include <math.h>
-#include "Stack.h"
-using namespace std;
+#pragma once
+#include "NewStack.h"
+#include "MyException.h"
 
 template <class ValType>
-class MultiStack : public Stack<Stack<ValType> > {
+class TMStack{
 protected:
-    int count; // количество stack
-    int len; // длина
-    ValType* pMultiStack;
-    Stack<ValType>* pS;
-    void Relocation(int index);
-    ValType** mas2;
+	int count;
+	int length;
+	ValType* mas;
+	TNewStack<ValType>** mStack;
+	int CountFree();
+	void Repack(int num);
 public:
-    MultiStack(int len = 1, int count = 1);
-    MultiStack(MultiStack<ValType>& v);
-    void PushMultiStack(ValType temp, int index);
-    ValType GetMultiStack(int index);
-    ~MultiStack();
+	TMStack(int count = 1, int length = 5);
+	TMStack(TMStack<ValType>& v);
+	~TMStack();
 
-    bool IsEmpty(int index);
-    bool IsFull(int index);
+	int GetLength();
+	void SetElem(int count, ValType elem);
+	ValType GetElem(int count);
 
-    MultiStack<ValType>& operator=(MultiStack<ValType>& v);
-    void Relength(int len = 1, int count = 1);
-    int GetLen() {
-        return len;
-  }
+	bool IsFull(int count);
+	bool IsEmpty(int count);
 };
 
-template<class ValType>
-inline void MultiStack<ValType>::Relength(int len, int count){
-    pS[count].Relength(len);
-}
+template <class ValType>
+TMStack<ValType>::TMStack(int count, int length){
+	if (count <= 0 || length <= 0)
+		throw TMyException("Error! Incorrect size or number of stack! \n");
+	else{
+		this->count = count;
+		this->length = length;
+		mStack = new TNewStack<ValType> * [count];
+		mas = new ValType[length];
+		int* tmp1 = new int[count];
 
-template<class ValType>
-inline void MultiStack<ValType>::Relocation(int index){
-    int Size = 0;
-    for (int i = 0; i < count; i++)
-        Size += pS[i].GetLength() - pS[i].GetTop();
+		for (int i = 0; i < count; i++)
+			tmp1[i] = length / count;
 
-    if (Size == 0)
-        throw logic_error("Input error: invalide value of MultiStack length in Relocation");
+		tmp1[0] += length % count;
+		ValType** tmp2 = new ValType * [count];
+		tmp2[0] = mas;
 
-    int parts = int(floor(double(Size) / count));
-    
-    int* array = new int[count];
-    for (int i = 0; i < count - 1; i++)
-        array[i] = pS[i].GetTop() + parts;
-    
-    int a = pS[count - 1].GetTop();
-    array[count - 1] = a + (Size - (parts * (count - 1)));
+		for (int i = 1; i < count; i++)
+			tmp2[i] = tmp2[i - 1] + tmp1[i - 1];
 
-    int temp = 0;
-    ValType** mas1 = new ValType * [count];
-    for (int i = 0; i < count; i++){
-        mas1[i] = &(pMultiStack[temp]);
-        temp += array[i];
-    }
-
-    for (int i = 0; i < count; i++){
-        if (mas1[i] == mas2[i])
-            pS[i].SetpStack(mas1[i], array[i], pS[i].GetTop());
- 
-        else if (mas1[i] < mas2[i]){
-            for (int j = 0; j < pS[i].GetTop(); j++)
-                mas1[i][j] = mas2[i][j];
-            
-            pS[i].SetpStack(mas1[i], array[i], pS[i].GetTop());
-        }
-
-        else if (mas1[i] > mas2[i]){
-            int tpk = i;
-            for (; tpk < count; tpk++)
-                if (mas1[tpk] > mas2[tpk]) continue;
-                else break;
-            tpk--;
-
-            for (int j = tpk; j <= i; j--){
-                for (int jj = pS[j].GetTop() - 1; jj >= 0; jj--)
-                    mas1[j][jj] = mas2[j][jj];
-
-                pS[j].SetpStack(mas1[j], array[j], pS[j].GetTop());
-            }
-
-        }
-    }
-
-    ValType** mas = mas2;
-    mas2 = mas1;
-    delete[] mas;
-    delete[] array;
+		for (int i = 0; i < count; i++)
+			mStack[i] = new TNewStack<ValType>(tmp1[i], tmp2[i]);
+	}
 }
 
 template <class ValType>
-MultiStack<ValType>::MultiStack(int len, int count) {
-    if (size > 0 && count > 0) {
-        this->len = len;
-        this->count = count;
+TMStack<ValType>::TMStack(TMStack<ValType>& v){
+	this->count = v.count;
+	this->length = v.length;
+	if (length == 0){
+		mas = nullptr;
+		mStack = nullptr;
+	}
+	else{
+		mas = new ValType[length];
+		for (int i = 0; i < length; i++)
+			this->mas[i] = v.mas[i];
 
-        pMultiStack = new ValType[len];
-        for (int i = 0; i < len; i++)
-            pMultiStack[i] = 0;
+		mStack = new TNewStack<ValType> * [count];
+		int* tmp1 = new int[count];
+		for (int i = 0; i < count; i++)
+			tmp1[i] = v.mStack[i]->GetLength();
 
-        int parts = int(floor(double(len) / count));
-
-        int* array = new int[count];
-        for (int i = 0; i < count - 1; i++)
-            array[i] = parts;
-
-        array[count - 1] = len - (parts * (count - 1));
-
-        int tmp = 0;
-        mas2 = new ValType * [count];
-        this->pS = new Stack<ValType>[count];
-        for (int i = 0; i < count; i++) {
-            this->pS[i].SetpStack(&(pStack[tmp]), array[i], 0);
-            this->mas2[i] = &(pMultiStack[tmp]);
-            tmp += array[i];
-        }
-    }
-    else
-        throw logic_error("Input error: invalide value of MultiStack length in constructor");
+		ValType** tmp2 = new ValType * [count];
+		tmp2[0] = mas;
+		for (int i = 0; i < count; i++)
+			tmp2[i] = tmp1[i - 1] + tmp2[i - 1];
+		for (int i = 0; i < count; i++){
+			mStack[i] = new TNewStack<ValType>(*v.mStack[i]);
+			mStack[i]->SetM(tmp1[i], tmp2[i]);
+		}
+	}
 }
 
 template <class ValType>
-MultiStack<ValType>::MultiStack(MultiStack<ValType>& v) {
-    len = v.len;
-    count = v.count;
-    pMultiStack = new ValType[len];
-    for (int i = 0; i < len; i++)
-        pMultiStack[i] = v.pMultiStack[i];
-
-    pS = new Stack<ValType>[count];
-    for (int i = 0; i < count; i++)
-        pS[i] = v.pS[i];
-
-    mas2 = v.mas2;
+TMStack<ValType>::~TMStack(){
+	if (mas != 0)
+		delete[] mas;
+	mas = nullptr;
 }
 
 template <class ValType>
-MultiStack<ValType>::~MultiStack()
+int TMStack<ValType>::GetLength(){
+	return length;
+}
+
+template <class ValType>
+void TMStack<ValType>::SetElem(int count, ValType elem){
+	if (count < 0 || count >= this->count)
+		throw TMyException("Error! Index is out of range!\n");
+	else if (this->CountFree() == 0)
+		throw TMyException("Error! No free mem!\n");
+	else if (IsFull(count))
+		Repack(count);
+	mStack[count]->PutElem(elem);
+}
+
+template <class ValType>
+ValType TMStack<ValType>::GetElem(int count){
+	if (count < 0 || count >= this->count)
+		throw TMyException("Error! Index is out of range!\n");
+	if (IsEmpty(count))
+		throw TMyException("Error! MultiStack is empty!\n");
+	return mStack[count]->Get();
+}
+
+template <class ValType>
+bool TMStack<ValType>::IsFull(int count){
+	if (count < 0 || count >= this->count)
+		throw TMyException("Error! Index is out of range!\n");
+	else
+		return (mStack[count]->GetFreeMem() == 0);
+}
+
+template <class ValType>
+bool TMStack<ValType>::IsEmpty(int count){
+	if (count < 0 || count >= this->count)
+		throw TMyException("Error! Index is out of range!\n");
+	else
+		return (mStack[count]->GetFreeMem() == mStack[count]->GetLength());
+}
+
+template <class ValType>
+int TMStack<ValType>::CountFree()
 {
-    len = 0;
-    count = 0;
-    if (pMultiStack != 0) {
-        delete[] pMultiStack;
-        delete[] pS;
-    }
+	int tmp = 0;
+	for (int i = 0; i < count; i++)
+		tmp += mStack[i]->GetFreeMem();
+	return tmp;
 }
 
 template <class ValType>
-bool MultiStack<ValType>::IsEmpty(int index) {
-    if (index < 0 || index >= count)
-        throw logic_error("IsEmpty");
-    return pS[index].IsEmpty();
-
+void TMStack<ValType>::Repack(int num){
+	int fMem = CountFree();
+	int addEv = fMem / count;
+	int addFull = fMem % count;
+	int* newSize = new int[count];
+	ValType** newStart = new ValType * [count];
+	ValType** oldStart = new ValType * [count];
+	for (int i = 0; i < count; i++)
+		newSize[i] = addEv + mStack[i]->GetTop();
+	newSize[num] += addFull;
+	newStart[0] = oldStart[0] = mas;
+	for (int i = 1; i < count; i++){
+		newStart[i] = newStart[i - 1] + newSize[i - 1];
+		oldStart[i] = oldStart[i - 1] + mStack[i - 1]->GetLength();
+	}
+	for (int i = 0; i < count; i++){
+		if (newStart[i] <= oldStart[i])
+			for (int j = 0; j < mStack[i]->GetTop(); j++)
+				newStart[i][j] = oldStart[i][j];
+		else{
+			int s;
+			for (s = i + 1; s < count; s++)
+				if (newStart[s] <= oldStart[s])
+					break;
+			for (int j = count - 1; j >= i; j--)
+				for (int r = mStack[j]->GetTop() - 1; r >= 0; r--)
+					newStart[j][r] = oldStart[j][r];
+			i = s - 1;
+		}
+	}
+	for (int i = 0; i < count; i++)
+		mStack[i]->SetM(newSize[i], newStart[i]);
+	delete[] newSize;
+	delete[] newStart;
+	delete[] oldStart;
 }
-
-template <class ValType>
-bool MultiStack<ValType>::IsFull(int index) {
-    if (index < 0 || index >= count)
-        throw logic_error("IsFull");
-    return pS[index].IsFull();
-}
-
-template <class ValType>
-MultiStack<ValType>& MultiStack<ValType>::operator=(MultiStack<ValType>& v)
-{
-    if (this == &v)
-        return *this;
-
-    len = v.len;
-    delete[] pMutliStack;
-    delete[] pS;
-
-    pMultiStack = new ValType[len];
-    for (int i = 0; i < len; i++)
-        pMutliStack[i] = v.pMultiStack[i];
-
-    pS = new Stack<ValType>[count];
-    for (int i = 0; i < count; i++)
-        pS[i] = v.pS[i];
-
-    return *this;
-}
-
-template<class ValType>
-inline void MultiStack<ValType>::PushMultiStack(ValType temp, int index) {
-    if (index < 0 || index >= count)
-        throw logic_error("Input error: invalide value of Stack length in PushMStack");
-    if (pS[index].IsFull()) Relocation(index);
-
-    pS[index].PushStack(temp);
-}
-
-template<class ValType>
-inline ValType MultiStack<ValType>::GetMultiStack(int index) {
-    if (index < 0 || index >= count || pS[index].IsEmpty())
-        throw logic_error("Input error: invalide value of Stack length in PushMStack");
-    return pS[index].GetStack();
-}
-
-#endif

@@ -1972,8 +1972,8 @@ struct CompileAssert {
 template <typename T1, typename T2>
 struct StaticAssertTypeEqHelper;
 
-template <typename T>
-struct StaticAssertTypeEqHelper<T, T> {};
+template <typename ValType>
+struct StaticAssertTypeEqHelper<ValType, ValType> {};
 
 #if GTEST_HAS_GLOBAL_STRING
 typedef ::string string;
@@ -1995,27 +1995,27 @@ GTEST_API_ bool IsTrue(bool condition);
 
 // This implementation of scoped_ptr is PARTIAL - it only contains
 // enough stuff to satisfy Google Test's need.
-template <typename T>
+template <typename ValType>
 class scoped_ptr {
  public:
-  typedef T element_type;
+  typedef ValType element_type;
 
-  explicit scoped_ptr(T* p = NULL) : ptr_(p) {}
+  explicit scoped_ptr(ValType* p = NULL) : ptr_(p) {}
   ~scoped_ptr() { reset(); }
 
-  T& operator*() const { return *ptr_; }
-  T* operator->() const { return ptr_; }
-  T* get() const { return ptr_; }
+  ValType& operator*() const { return *ptr_; }
+  ValType* operator->() const { return ptr_; }
+  ValType* get() const { return ptr_; }
 
-  T* release() {
-    T* const ptr = ptr_;
+  ValType* release() {
+    ValType* const ptr = ptr_;
     ptr_ = NULL;
     return ptr;
   }
 
-  void reset(T* p = NULL) {
+  void reset(ValType* p = NULL) {
     if (p != ptr_) {
-      if (IsTrue(sizeof(T) > 0)) {  // Makes sure T is a complete type.
+      if (IsTrue(sizeof(ValType) > 0)) {  // Makes sure T is a complete type.
         delete ptr_;
       }
       ptr_ = p;
@@ -2023,7 +2023,7 @@ class scoped_ptr {
   }
 
  private:
-  T* ptr_;
+  ValType* ptr_;
 
   GTEST_DISALLOW_COPY_AND_ASSIGN_(scoped_ptr);
 };
@@ -2671,17 +2671,17 @@ class GTestMutexLock {
 
 typedef GTestMutexLock MutexLock;
 
-template <typename T>
+template <typename ValType>
 class ThreadLocal {
  public:
   ThreadLocal() : value_() {}
-  explicit ThreadLocal(const T& value) : value_(value) {}
-  T* pointer() { return &value_; }
-  const T* pointer() const { return &value_; }
-  const T& get() const { return value_; }
-  void set(const T& value) { value_ = value; }
+  explicit ThreadLocal(const ValType& value) : value_(value) {}
+  ValType* pointer() { return &value_; }
+  const ValType* pointer() const { return &value_; }
+  const ValType& get() const { return value_; }
+  void set(const ValType& value) { value_ = value; }
  private:
-  T value_;
+  ValType value_;
 };
 
 // The above synchronization primitives have dummy implementations.
@@ -2726,25 +2726,25 @@ template <bool bool_value> const bool bool_constant<bool_value>::value;
 typedef bool_constant<false> false_type;
 typedef bool_constant<true> true_type;
 
-template <typename T>
+template <typename ValType>
 struct is_pointer : public false_type {};
 
-template <typename T>
-struct is_pointer<T*> : public true_type {};
+template <typename ValType>
+struct is_pointer<ValType*> : public true_type {};
 
 template <typename Iterator>
 struct IteratorTraits {
   typedef typename Iterator::value_type value_type;
 };
 
-template <typename T>
-struct IteratorTraits<T*> {
-  typedef T value_type;
+template <typename ValType>
+struct IteratorTraits<ValType*> {
+  typedef ValType value_type;
 };
 
-template <typename T>
-struct IteratorTraits<const T*> {
-  typedef T value_type;
+template <typename ValType>
+struct IteratorTraits<const ValType*> {
+  typedef ValType value_type;
 };
 
 #if GTEST_OS_WINDOWS
@@ -3185,8 +3185,8 @@ class GTEST_API_ Message {
   }
 #else
   // Streams a non-pointer value to this object.
-  template <typename T>
-  inline Message& operator <<(const T& val) {
+  template <typename ValType>
+  inline Message& operator <<(const ValType& val) {
     // Some libraries overload << for STL containers.  These
     // overloads are defined in the global namespace instead of ::std.
     //
@@ -3219,8 +3219,8 @@ class GTEST_API_ Message {
   // may get "0", "(nil)", "(null)", or an access violation.  To
   // ensure consistent result across compilers, we always treat NULL
   // as "(null)".
-  template <typename T>
-  inline Message& operator <<(T* const& pointer) {  // NOLINT
+  template <typename ValType>
+  inline Message& operator <<(ValType* const& pointer) {  // NOLINT
     if (pointer == NULL) {
       *ss_ << "(null)";
     } else {
@@ -3313,8 +3313,8 @@ namespace internal {
 // converted to "(null)".  When the input value is a ::string,
 // ::std::string, ::wstring, or ::std::wstring object, each NUL
 // character in it is replaced with "\\0".
-template <typename T>
-std::string StreamableToString(const T& streamable) {
+template <typename ValType>
+std::string StreamableToString(const ValType& streamable) {
   return (Message() << streamable).GetString();
 }
 
@@ -3754,11 +3754,11 @@ namespace internal {
 // GetTypeName<T>() returns a human-readable name of type T.
 // NB: This function is also used in Google Mock, so don't move it inside of
 // the typed-test-only section below.
-template <typename T>
+template <typename ValType>
 std::string GetTypeName() {
 # if GTEST_HAS_RTTI
 
-  const char* const name = typeid(T).name();
+  const char* const name = typeid(ValType).name();
 #  if GTEST_HAS_CXXABI_H_ || defined(__HP_aCC)
   int status = 0;
   // gcc's implementation of typeid(T).name() mangles the type name,
@@ -3790,8 +3790,8 @@ std::string GetTypeName() {
 template <typename T1, typename T2>
 struct AssertTypeEq;
 
-template <typename T>
-struct AssertTypeEq<T, T> {
+template <typename ValType>
+struct AssertTypeEq<ValType, ValType> {
   typedef bool type;
 };
 
@@ -5325,9 +5325,9 @@ namespace internal {
 // which C++ doesn't support directly.
 template <GTEST_TEMPLATE_ Tmpl>
 struct TemplateSel {
-  template <typename T>
+  template <typename ValType>
   struct Bind {
-    typedef Tmpl<T> type;
+    typedef Tmpl<ValType> type;
   };
 };
 
@@ -5338,7 +5338,7 @@ struct TemplateSel {
 // arguments of class template Templates.  This allows us to simulate
 // variadic templates (e.g. Templates<int>, Templates<int, double>,
 // and etc), which C++ doesn't support directly.
-template <typename T>
+template <typename ValType>
 struct NoneT {};
 
 // The following family of struct and struct templates are used to
@@ -6992,9 +6992,9 @@ struct Templates<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14,
 // or a Types<...> list in TYPED_TEST_CASE() and
 // INSTANTIATE_TYPED_TEST_CASE_P().
 
-template <typename T>
+template <typename ValType>
 struct TypeList {
-  typedef Types1<T> type;
+  typedef Types1<ValType> type;
 };
 
 template <typename T1, typename T2, typename T3, typename T4, typename T5,
@@ -7049,8 +7049,8 @@ class TestInfo;                        // Information about a test.
 class TestPartResult;                  // Result of a test part.
 class UnitTest;                        // A collection of test cases.
 
-template <typename T>
-::std::string PrintToString(const T& value);
+template <typename ValType>
+::std::string PrintToString(const ValType& value);
 
 namespace internal {
 
@@ -7360,7 +7360,7 @@ typedef FloatingPoint<double> Double;
 // them for equality using the == operator.
 typedef const void* TypeId;
 
-template <typename T>
+template <typename ValType>
 class TypeIdHelper {
  public:
   // dummy_ must not have a const type.  Otherwise an overly eager
@@ -7369,19 +7369,19 @@ class TypeIdHelper {
   static bool dummy_;
 };
 
-template <typename T>
-bool TypeIdHelper<T>::dummy_ = false;
+template <typename ValType>
+bool TypeIdHelper<ValType>::dummy_ = false;
 
 // GetTypeId<T>() returns the ID of type T.  Different values will be
 // returned for different types.  Calling the function twice with the
 // same type argument is guaranteed to return the same ID.
-template <typename T>
+template <typename ValType>
 TypeId GetTypeId() {
   // The compiler is required to allocate a different
   // TypeIdHelper<T>::dummy_ variable for each T used to instantiate
   // the template.  Therefore, the address of dummy_ is guaranteed to
   // be unique.
-  return &(TypeIdHelper<T>::dummy_);
+  return &(TypeIdHelper<ValType>::dummy_);
 }
 
 // Returns the type ID of ::testing::Test.  Always call this instead
@@ -7657,17 +7657,17 @@ class GTEST_API_ Random {
 template <typename T1, typename T2>
 struct CompileAssertTypesEqual;
 
-template <typename T>
-struct CompileAssertTypesEqual<T, T> {
+template <typename ValType>
+struct CompileAssertTypesEqual<ValType, ValType> {
 };
 
 // Removes the reference from a type if it is a reference type,
 // otherwise leaves it unchanged.  This is the same as
 // tr1::remove_reference, which is not widely available yet.
-template <typename T>
-struct RemoveReference { typedef T type; };  // NOLINT
-template <typename T>
-struct RemoveReference<T&> { typedef T type; };  // NOLINT
+template <typename ValType>
+struct RemoveReference { typedef ValType type; };  // NOLINT
+template <typename ValType>
+struct RemoveReference<ValType&> { typedef ValType type; };  // NOLINT
 
 // A handy wrapper around RemoveReference that works when the argument
 // T depends on template parameters.
@@ -7677,17 +7677,17 @@ struct RemoveReference<T&> { typedef T type; };  // NOLINT
 // Removes const from a type if it is a const type, otherwise leaves
 // it unchanged.  This is the same as tr1::remove_const, which is not
 // widely available yet.
-template <typename T>
-struct RemoveConst { typedef T type; };  // NOLINT
-template <typename T>
-struct RemoveConst<const T> { typedef T type; };  // NOLINT
+template <typename ValType>
+struct RemoveConst { typedef ValType type; };  // NOLINT
+template <typename ValType>
+struct RemoveConst<const ValType> { typedef ValType type; };  // NOLINT
 
 // MSVC 8.0, Sun C++, and IBM XL C++ have a bug which causes the above
 // definition to fail to remove the const in 'const int[3]' and 'const
 // char[3][4]'.  The following specialization works around the bug.
-template <typename T, size_t N>
-struct RemoveConst<const T[N]> {
-  typedef typename RemoveConst<T>::type type[N];
+template <typename ValType, size_t N>
+struct RemoveConst<const ValType[N]> {
+  typedef typename RemoveConst<ValType>::type type[N];
 };
 
 #if defined(_MSC_VER) && _MSC_VER < 1400
@@ -7712,10 +7712,10 @@ struct RemoveConst<T[N]> {
 // Adds reference to a type if it is not a reference type,
 // otherwise leaves it unchanged.  This is the same as
 // tr1::add_reference, which is not widely available yet.
-template <typename T>
-struct AddReference { typedef T& type; };  // NOLINT
-template <typename T>
-struct AddReference<T&> { typedef T& type; };  // NOLINT
+template <typename ValType>
+struct AddReference { typedef ValType& type; };  // NOLINT
+template <typename ValType>
+struct AddReference<ValType&> { typedef ValType& type; };  // NOLINT
 
 // A handy wrapper around AddReference that works when the argument T
 // depends on template parameters.
@@ -7790,11 +7790,11 @@ const bool ImplicitlyConvertible<From, To>::value;
 // IsAProtocolMessage<T>::value is a compile-time bool constant that's
 // true iff T is type ProtocolMessage, proto2::Message, or a subclass
 // of those.
-template <typename T>
+template <typename ValType>
 struct IsAProtocolMessage
     : public bool_constant<
-  ImplicitlyConvertible<const T*, const ::ProtocolMessage*>::value ||
-  ImplicitlyConvertible<const T*, const ::proto2::Message*>::value> {
+  ImplicitlyConvertible<const ValType*, const ::ProtocolMessage*>::value ||
+  ImplicitlyConvertible<const ValType*, const ::proto2::Message*>::value> {
 };
 
 // When the compiler sees expression IsContainerTest<C>(0), if C is an
@@ -7843,24 +7843,24 @@ template<> struct EnableIf<true> { typedef void type; };  // NOLINT
 // elements' operator==, where k can be any integer >= 0.  When k is
 // 0, ArrayEq() degenerates into comparing a single pair of values.
 
-template <typename T, typename U>
-bool ArrayEq(const T* lhs, size_t size, const U* rhs);
+template <typename ValType, typename U>
+bool ArrayEq(const ValType* lhs, size_t size, const U* rhs);
 
 // This generic version is used when k is 0.
-template <typename T, typename U>
-inline bool ArrayEq(const T& lhs, const U& rhs) { return lhs == rhs; }
+template <typename ValType, typename U>
+inline bool ArrayEq(const ValType& lhs, const U& rhs) { return lhs == rhs; }
 
 // This overload is used when k >= 1.
-template <typename T, typename U, size_t N>
-inline bool ArrayEq(const T(&lhs)[N], const U(&rhs)[N]) {
+template <typename ValType, typename U, size_t N>
+inline bool ArrayEq(const ValType(&lhs)[N], const U(&rhs)[N]) {
   return internal::ArrayEq(lhs, N, rhs);
 }
 
 // This helper reduces code bloat.  If we instead put its logic inside
 // the previous ArrayEq() function, arrays with different sizes would
 // lead to different copies of the template code.
-template <typename T, typename U>
-bool ArrayEq(const T* lhs, size_t size, const U* rhs) {
+template <typename ValType, typename U>
+bool ArrayEq(const ValType* lhs, size_t size, const U* rhs) {
   for (size_t i = 0; i != size; i++) {
     if (!internal::ArrayEq(lhs[i], rhs[i]))
       return false;
@@ -7883,24 +7883,24 @@ Iter ArrayAwareFind(Iter begin, Iter end, const Element& elem) {
 // operator=, where k can be any integer >= 0.  When k is 0,
 // CopyArray() degenerates into copying a single value.
 
-template <typename T, typename U>
-void CopyArray(const T* from, size_t size, U* to);
+template <typename ValType, typename U>
+void CopyArray(const ValType* from, size_t size, U* to);
 
 // This generic version is used when k is 0.
-template <typename T, typename U>
-inline void CopyArray(const T& from, U* to) { *to = from; }
+template <typename ValType, typename U>
+inline void CopyArray(const ValType& from, U* to) { *to = from; }
 
 // This overload is used when k >= 1.
-template <typename T, typename U, size_t N>
-inline void CopyArray(const T(&from)[N], U(*to)[N]) {
+template <typename ValType, typename U, size_t N>
+inline void CopyArray(const ValType(&from)[N], U(*to)[N]) {
   internal::CopyArray(from, N, *to);
 }
 
 // This helper reduces code bloat.  If we instead put its logic inside
 // the previous CopyArray() function, arrays with different sizes
 // would lead to different copies of the template code.
-template <typename T, typename U>
-void CopyArray(const T* from, size_t size, U* to) {
+template <typename ValType, typename U>
+void CopyArray(const ValType* from, size_t size, U* to) {
   for (size_t i = 0; i != size; i++) {
     internal::CopyArray(from[i], to + i);
   }
@@ -9094,14 +9094,14 @@ class linked_ptr_internal {
   mutable linked_ptr_internal const* next_;
 };
 
-template <typename T>
+template <typename ValType>
 class linked_ptr {
  public:
-  typedef T element_type;
+  typedef ValType element_type;
 
   // Take over ownership of a raw pointer.  This should happen as soon as
   // possible after the object is created.
-  explicit linked_ptr(T* ptr = NULL) { capture(ptr); }
+  explicit linked_ptr(ValType* ptr = NULL) { capture(ptr); }
   ~linked_ptr() { depart(); }
 
   // Copy an existing linked_ptr<>, adding ourselves to the list of references.
@@ -9127,16 +9127,16 @@ class linked_ptr {
   }
 
   // Smart pointer members.
-  void reset(T* ptr = NULL) {
+  void reset(ValType* ptr = NULL) {
     depart();
     capture(ptr);
   }
-  T* get() const { return value_; }
-  T* operator->() const { return value_; }
-  T& operator*() const { return *value_; }
+  ValType* get() const { return value_; }
+  ValType* operator->() const { return value_; }
+  ValType& operator*() const { return *value_; }
 
-  bool operator==(T* p) const { return value_ == p; }
-  bool operator!=(T* p) const { return value_ != p; }
+  bool operator==(ValType* p) const { return value_ == p; }
+  bool operator!=(ValType* p) const { return value_ != p; }
   template <typename U>
   bool operator==(linked_ptr<U> const& ptr) const {
     return value_ == ptr.get();
@@ -9150,14 +9150,14 @@ class linked_ptr {
   template <typename U>
   friend class linked_ptr;
 
-  T* value_;
+  ValType* value_;
   linked_ptr_internal link_;
 
   void depart() {
     if (link_.depart()) delete value_;
   }
 
-  void capture(T* ptr) {
+  void capture(ValType* ptr) {
     value_ = ptr;
     link_.join_new();
   }
@@ -9171,22 +9171,22 @@ class linked_ptr {
   }
 };
 
-template<typename T> inline
-bool operator==(T* ptr, const linked_ptr<T>& x) {
+template<typename ValType> inline
+bool operator==(ValType* ptr, const linked_ptr<ValType>& x) {
   return ptr == x.get();
 }
 
-template<typename T> inline
-bool operator!=(T* ptr, const linked_ptr<T>& x) {
+template<typename ValType> inline
+bool operator!=(ValType* ptr, const linked_ptr<ValType>& x) {
   return ptr != x.get();
 }
 
 // A function to convert T* into linked_ptr<T>
 // Doing e.g. make_linked_ptr(new FooBarBaz<type>(arg)) is a shorter notation
 // for linked_ptr<FooBarBaz<type> >(new FooBarBaz<type>(arg))
-template <typename T>
-linked_ptr<T> make_linked_ptr(T* ptr) {
-  return linked_ptr<T>(ptr);
+template <typename ValType>
+linked_ptr<ValType> make_linked_ptr(ValType* ptr) {
+  return linked_ptr<ValType>(ptr);
 }
 
 }  // namespace internal
@@ -9321,11 +9321,11 @@ enum TypeKind {
 // by the universal printer to print a value of type T when neither
 // operator<< nor PrintTo() is defined for T, where kTypeKind is the
 // "kind" of T as defined by enum TypeKind.
-template <typename T, TypeKind kTypeKind>
+template <typename ValType, TypeKind kTypeKind>
 class TypeWithoutFormatter {
  public:
   // This default version is called when kTypeKind is kOtherType.
-  static void PrintValue(const T& value, ::std::ostream* os) {
+  static void PrintValue(const ValType& value, ::std::ostream* os) {
     PrintBytesInObjectTo(reinterpret_cast<const unsigned char*>(&value),
                          sizeof(value), os);
   }
@@ -9336,10 +9336,10 @@ class TypeWithoutFormatter {
 // DebugString() for better readability.
 const size_t kProtobufOneLinerMaxLength = 50;
 
-template <typename T>
-class TypeWithoutFormatter<T, kProtobuf> {
+template <typename ValType>
+class TypeWithoutFormatter<ValType, kProtobuf> {
  public:
-  static void PrintValue(const T& value, ::std::ostream* os) {
+  static void PrintValue(const ValType& value, ::std::ostream* os) {
     const ::testing::internal::string short_str = value.ShortDebugString();
     const ::testing::internal::string pretty_str =
         short_str.length() <= kProtobufOneLinerMaxLength ?
@@ -9348,8 +9348,8 @@ class TypeWithoutFormatter<T, kProtobuf> {
   }
 };
 
-template <typename T>
-class TypeWithoutFormatter<T, kConvertibleToInteger> {
+template <typename ValType>
+class TypeWithoutFormatter<ValType, kConvertibleToInteger> {
  public:
   // Since T has no << operator or PrintTo() but can be implicitly
   // converted to BiggestInt, we print it as a BiggestInt.
@@ -9358,7 +9358,7 @@ class TypeWithoutFormatter<T, kConvertibleToInteger> {
   // case printing it as an integer is the desired behavior.  In case
   // T is not an enum, printing it as an integer is the best we can do
   // given that it has no user-defined printer.
-  static void PrintValue(const T& value, ::std::ostream* os) {
+  static void PrintValue(const ValType& value, ::std::ostream* os) {
     const internal::BiggestInt kBigInt = value;
     *os << kBigInt;
   }
@@ -9388,12 +9388,12 @@ class TypeWithoutFormatter<T, kConvertibleToInteger> {
 // operator<<(std::ostream&, const T&) or
 // operator<<(std::basic_stream<Char, CharTraits>, const Foo&) is more
 // specific.
-template <typename Char, typename CharTraits, typename T>
+template <typename Char, typename CharTraits, typename ValType>
 ::std::basic_ostream<Char, CharTraits>& operator<<(
-    ::std::basic_ostream<Char, CharTraits>& os, const T& x) {
-  TypeWithoutFormatter<T,
-      (internal::IsAProtocolMessage<T>::value ? kProtobuf :
-       internal::ImplicitlyConvertible<const T&, internal::BiggestInt>::value ?
+    ::std::basic_ostream<Char, CharTraits>& os, const ValType& x) {
+  TypeWithoutFormatter<ValType,
+      (internal::IsAProtocolMessage<ValType>::value ? kProtobuf :
+       internal::ImplicitlyConvertible<const ValType&, internal::BiggestInt>::value ?
        kConvertibleToInteger : kOtherType)>::PrintValue(x, &os);
   return os;
 }
@@ -9407,8 +9407,8 @@ namespace testing_internal {
 
 // Used to print a value that is not an STL-style container when the
 // user doesn't define PrintTo() for it.
-template <typename T>
-void DefaultPrintNonContainerTo(const T& value, ::std::ostream* os) {
+template <typename ValType>
+void DefaultPrintNonContainerTo(const ValType& value, ::std::ostream* os) {
   // With the following statement, during unqualified name lookup,
   // testing::internal2::operator<< appears as if it was declared in
   // the nearest enclosing namespace that contains both
@@ -9450,11 +9450,11 @@ namespace internal {
 // We define UniversalPrinter as a class template (as opposed to a
 // function template), as we need to partially specialize it for
 // reference types, which cannot be done with function templates.
-template <typename T>
+template <typename ValType>
 class UniversalPrinter;
 
-template <typename T>
-void UniversalPrint(const T& value, ::std::ostream* os);
+template <typename ValType>
+void UniversalPrint(const ValType& value, ::std::ostream* os);
 
 // Used to print an STL-style container when the user doesn't define
 // a PrintTo() for it.
@@ -9492,10 +9492,10 @@ void DefaultPrintTo(IsContainer /* dummy */,
 // a location in the address space.  Their representation is
 // implementation-defined.  Therefore they will be printed as raw
 // bytes.)
-template <typename T>
+template <typename ValType>
 void DefaultPrintTo(IsNotContainer /* dummy */,
                     true_type /* is a pointer */,
-                    T* p, ::std::ostream* os) {
+                    ValType* p, ::std::ostream* os) {
   if (p == NULL) {
     *os << "NULL";
   } else {
@@ -9504,7 +9504,7 @@ void DefaultPrintTo(IsNotContainer /* dummy */,
     //
     // IsTrue() silences warnings: "Condition is always true",
     // "unreachable code".
-    if (IsTrue(ImplicitlyConvertible<T*, const void*>::value)) {
+    if (IsTrue(ImplicitlyConvertible<ValType*, const void*>::value)) {
       // T is not a function type.  We just call << to print p,
       // relying on ADL to pick up user-defined << for their pointer
       // types, if any.
@@ -9524,10 +9524,10 @@ void DefaultPrintTo(IsNotContainer /* dummy */,
 
 // Used to print a non-container, non-pointer value when the user
 // doesn't define PrintTo() for it.
-template <typename T>
+template <typename ValType>
 void DefaultPrintTo(IsNotContainer /* dummy */,
                     false_type /* is not a pointer */,
-                    const T& value, ::std::ostream* os) {
+                    const ValType& value, ::std::ostream* os) {
   ::testing_internal::DefaultPrintNonContainerTo(value, os);
 }
 
@@ -9542,8 +9542,8 @@ void DefaultPrintTo(IsNotContainer /* dummy */,
 // Foo is not desirable (e.g. the coding style may prevent doing it,
 // or there is already a << operator but it doesn't do what the user
 // wants).
-template <typename T>
-void PrintTo(const T& value, ::std::ostream* os) {
+template <typename ValType>
+void PrintTo(const ValType& value, ::std::ostream* os) {
   // DefaultPrintTo() is overloaded.  The type of its first two
   // arguments determine which version will be picked.  If T is an
   // STL-style container, the version for container will be called; if
@@ -9566,7 +9566,7 @@ void PrintTo(const T& value, ::std::ostream* os) {
   //
   //   PrintTo(const T& x, ...);
   //   PrintTo(T* x, ...);
-  DefaultPrintTo(IsContainerTest<T>(0), is_pointer<T>(), value, os);
+  DefaultPrintTo(IsContainerTest<ValType>(0), is_pointer<ValType>(), value, os);
 }
 
 // The following list of PrintTo() overloads tells
@@ -9636,8 +9636,8 @@ inline void PrintTo(wchar_t* s, ::std::ostream* os) {
 
 // Prints the given number of elements in an array, without printing
 // the curly braces.
-template <typename T>
-void PrintRawArrayTo(const T a[], size_t count, ::std::ostream* os) {
+template <typename ValType>
+void PrintRawArrayTo(const ValType a[], size_t count, ::std::ostream* os) {
   UniversalPrint(a[0], os);
   for (size_t i = 1; i != count; i++) {
     *os << ", ";
@@ -9679,8 +9679,8 @@ inline void PrintTo(const ::std::wstring& s, ::std::ostream* os) {
 
 // Helper function for printing a tuple.  T must be instantiated with
 // a tuple type.
-template <typename T>
-void PrintTupleTo(const T& t, ::std::ostream* os);
+template <typename ValType>
+void PrintTupleTo(const ValType& t, ::std::ostream* os);
 
 // Overloaded PrintTo() for tuples of various arities.  We support
 // tuples of up-to 10 fields.  The following implementation works
@@ -9768,7 +9768,7 @@ void PrintTo(const ::std::pair<T1, T2>& value, ::std::ostream* os) {
 
 // Implements printing a non-reference type T by letting the compiler
 // pick the right overload of PrintTo() for T.
-template <typename T>
+template <typename ValType>
 class UniversalPrinter {
  public:
   // MSVC warns about adding const to a function type, so we want to
@@ -9781,7 +9781,7 @@ class UniversalPrinter {
   // Note: we deliberately don't call this PrintTo(), as that name
   // conflicts with ::testing::internal::PrintTo in the body of the
   // function.
-  static void Print(const T& value, ::std::ostream* os) {
+  static void Print(const ValType& value, ::std::ostream* os) {
     // By default, ::testing::internal::PrintTo() is used for printing
     // the value.
     //
@@ -9800,8 +9800,8 @@ class UniversalPrinter {
 
 // UniversalPrintArray(begin, len, os) prints an array of 'len'
 // elements, starting at address 'begin'.
-template <typename T>
-void UniversalPrintArray(const T* begin, size_t len, ::std::ostream* os) {
+template <typename ValType>
+void UniversalPrintArray(const ValType* begin, size_t len, ::std::ostream* os) {
   if (len == 0) {
     *os << "{}";
   } else {
@@ -9831,19 +9831,19 @@ GTEST_API_ void UniversalPrintArray(
     const wchar_t* begin, size_t len, ::std::ostream* os);
 
 // Implements printing an array type T[N].
-template <typename T, size_t N>
-class UniversalPrinter<T[N]> {
+template <typename ValType, size_t N>
+class UniversalPrinter<ValType[N]> {
  public:
   // Prints the given array, omitting some elements when there are too
   // many.
-  static void Print(const T (&a)[N], ::std::ostream* os) {
+  static void Print(const ValType (&a)[N], ::std::ostream* os) {
     UniversalPrintArray(a, N, os);
   }
 };
 
 // Implements printing a reference type T&.
-template <typename T>
-class UniversalPrinter<T&> {
+template <typename ValType>
+class UniversalPrinter<ValType&> {
  public:
   // MSVC warns about adding const to a function type, so we want to
   // disable the warning.
@@ -9852,7 +9852,7 @@ class UniversalPrinter<T&> {
 # pragma warning(disable:4180)  // Temporarily disables warning 4180.
 #endif  // _MSC_VER
 
-  static void Print(const T& value, ::std::ostream* os) {
+  static void Print(const ValType& value, ::std::ostream* os) {
     // Prints the address of the value.  We use reinterpret_cast here
     // as static_cast doesn't compile when T is a function type.
     *os << "@" << reinterpret_cast<const void*>(&value) << " ";
@@ -9870,25 +9870,25 @@ class UniversalPrinter<T&> {
 // (but not the address) is printed; for a (const) char pointer, the
 // NUL-terminated string (but not the pointer) is printed.
 
-template <typename T>
+template <typename ValType>
 class UniversalTersePrinter {
  public:
-  static void Print(const T& value, ::std::ostream* os) {
+  static void Print(const ValType& value, ::std::ostream* os) {
     UniversalPrint(value, os);
   }
 };
-template <typename T>
-class UniversalTersePrinter<T&> {
+template <typename ValType>
+class UniversalTersePrinter<ValType&> {
  public:
-  static void Print(const T& value, ::std::ostream* os) {
+  static void Print(const ValType& value, ::std::ostream* os) {
     UniversalPrint(value, os);
   }
 };
-template <typename T, size_t N>
-class UniversalTersePrinter<T[N]> {
+template <typename ValType, size_t N>
+class UniversalTersePrinter<ValType[N]> {
  public:
-  static void Print(const T (&value)[N], ::std::ostream* os) {
-    UniversalPrinter<T[N]>::Print(value, os);
+  static void Print(const ValType (&value)[N], ::std::ostream* os) {
+    UniversalPrinter<ValType[N]>::Print(value, os);
   }
 };
 template <>
@@ -9932,20 +9932,20 @@ class UniversalTersePrinter<wchar_t*> {
   }
 };
 
-template <typename T>
-void UniversalTersePrint(const T& value, ::std::ostream* os) {
-  UniversalTersePrinter<T>::Print(value, os);
+template <typename ValType>
+void UniversalTersePrint(const ValType& value, ::std::ostream* os) {
+  UniversalTersePrinter<ValType>::Print(value, os);
 }
 
 // Prints a value using the type inferred by the compiler.  The
 // difference between this and UniversalTersePrint() is that for a
 // (const) char pointer, this prints both the pointer and the
 // NUL-terminated string.
-template <typename T>
-void UniversalPrint(const T& value, ::std::ostream* os) {
+template <typename ValType>
+void UniversalPrint(const ValType& value, ::std::ostream* os) {
   // A workarond for the bug in VC++ 7.1 that prevents us from instantiating
   // UniversalPrinter with T directly.
-  typedef T T1;
+  typedef ValType T1;
   UniversalPrinter<T1>::Print(value, os);
 }
 
@@ -10014,10 +10014,10 @@ struct TuplePrefixPrinter<1> {
 
 // Helper function for printing a tuple.  T must be instantiated with
 // a tuple type.
-template <typename T>
-void PrintTupleTo(const T& t, ::std::ostream* os) {
+template <typename ValType>
+void PrintTupleTo(const ValType& t, ::std::ostream* os) {
   *os << "(";
-  TuplePrefixPrinter< ::std::tr1::tuple_size<T>::value>::
+  TuplePrefixPrinter< ::std::tr1::tuple_size<ValType>::value>::
       PrintPrefixTo(t, os);
   *os << ")";
 }
@@ -10036,10 +10036,10 @@ Strings UniversalTersePrintTupleFieldsToStrings(const Tuple& value) {
 
 }  // namespace internal
 
-template <typename T>
-::std::string PrintToString(const T& value) {
+template <typename ValType>
+::std::string PrintToString(const ValType& value) {
   ::std::stringstream ss;
-  internal::UniversalTersePrinter<T>::Print(value, &ss);
+  internal::UniversalTersePrinter<ValType>::Print(value, &ss);
   return ss.str();
 }
 
@@ -10066,14 +10066,14 @@ template <typename> class ParamGenerator;
 
 // Interface for iterating over elements provided by an implementation
 // of ParamGeneratorInterface<T>.
-template <typename T>
+template <typename ValType>
 class ParamIteratorInterface {
  public:
   virtual ~ParamIteratorInterface() {}
   // A pointer to the base generator instance.
   // Used only for the purposes of iterator comparison
   // to make sure that two iterators belong to the same generator.
-  virtual const ParamGeneratorInterface<T>* BaseGenerator() const = 0;
+  virtual const ParamGeneratorInterface<ValType>* BaseGenerator() const = 0;
   // Advances iterator to point to the next element
   // provided by the generator. The caller is responsible
   // for not calling Advance() on an iterator equal to
@@ -10086,7 +10086,7 @@ class ParamIteratorInterface {
   // to the pointed value. It is the caller's responsibility not to call
   // Current() on an iterator equal to BaseGenerator()->End().
   // Used for implementing ParamGenerator<T>::operator*().
-  virtual const T* Current() const = 0;
+  virtual const ValType* Current() const = 0;
   // Determines whether the given iterator and other point to the same
   // element in the sequence generated by the generator.
   // Used for implementing ParamGenerator<T>::operator==().
@@ -10096,11 +10096,11 @@ class ParamIteratorInterface {
 // Class iterating over elements provided by an implementation of
 // ParamGeneratorInterface<T>. It wraps ParamIteratorInterface<T>
 // and implements the const forward iterator concept.
-template <typename T>
+template <typename ValType>
 class ParamIterator {
  public:
-  typedef T value_type;
-  typedef const T& reference;
+  typedef ValType value_type;
+  typedef const ValType& reference;
   typedef ptrdiff_t difference_type;
 
   // ParamIterator assumes ownership of the impl_ pointer.
@@ -10111,8 +10111,8 @@ class ParamIterator {
     return *this;
   }
 
-  const T& operator*() const { return *impl_->Current(); }
-  const T* operator->() const { return impl_->Current(); }
+  const ValType& operator*() const { return *impl_->Current(); }
+  const ValType* operator->() const { return impl_->Current(); }
   // Prefix version of operator++.
   ParamIterator& operator++() {
     impl_->Advance();
@@ -10120,7 +10120,7 @@ class ParamIterator {
   }
   // Postfix version of operator++.
   ParamIterator operator++(int /*unused*/) {
-    ParamIteratorInterface<T>* clone = impl_->Clone();
+    ParamIteratorInterface<ValType>* clone = impl_->Clone();
     impl_->Advance();
     return ParamIterator(clone);
   }
@@ -10132,23 +10132,23 @@ class ParamIterator {
   }
 
  private:
-  friend class ParamGenerator<T>;
-  explicit ParamIterator(ParamIteratorInterface<T>* impl) : impl_(impl) {}
-  scoped_ptr<ParamIteratorInterface<T> > impl_;
+  friend class ParamGenerator<ValType>;
+  explicit ParamIterator(ParamIteratorInterface<ValType>* impl) : impl_(impl) {}
+  scoped_ptr<ParamIteratorInterface<ValType> > impl_;
 };
 
 // ParamGeneratorInterface<T> is the binary interface to access generators
 // defined in other translation units.
-template <typename T>
+template <typename ValType>
 class ParamGeneratorInterface {
  public:
-  typedef T ParamType;
+  typedef ValType ParamType;
 
   virtual ~ParamGeneratorInterface() {}
 
   // Generator interface definition
-  virtual ParamIteratorInterface<T>* Begin() const = 0;
-  virtual ParamIteratorInterface<T>* End() const = 0;
+  virtual ParamIteratorInterface<ValType>* Begin() const = 0;
+  virtual ParamIteratorInterface<ValType>* End() const = 0;
 };
 
 // Wraps ParamGeneratorInterface<T> and provides general generator syntax
@@ -10156,12 +10156,12 @@ class ParamGeneratorInterface {
 // This class implements copy initialization semantics and the contained
 // ParamGeneratorInterface<T> instance is shared among all copies
 // of the original object. This is possible because that instance is immutable.
-template<typename T>
+template<typename ValType>
 class ParamGenerator {
  public:
-  typedef ParamIterator<T> iterator;
+  typedef ParamIterator<ValType> iterator;
 
-  explicit ParamGenerator(ParamGeneratorInterface<T>* impl) : impl_(impl) {}
+  explicit ParamGenerator(ParamGeneratorInterface<ValType>* impl) : impl_(impl) {}
   ParamGenerator(const ParamGenerator& other) : impl_(other.impl_) {}
 
   ParamGenerator& operator=(const ParamGenerator& other) {
@@ -10173,48 +10173,48 @@ class ParamGenerator {
   iterator end() const { return iterator(impl_->End()); }
 
  private:
-  linked_ptr<const ParamGeneratorInterface<T> > impl_;
+  linked_ptr<const ParamGeneratorInterface<ValType> > impl_;
 };
 
 // Generates values from a range of two comparable values. Can be used to
 // generate sequences of user-defined types that implement operator+() and
 // operator<().
 // This class is used in the Range() function.
-template <typename T, typename IncrementT>
-class RangeGenerator : public ParamGeneratorInterface<T> {
+template <typename ValType, typename IncrementT>
+class RangeGenerator : public ParamGeneratorInterface<ValType> {
  public:
-  RangeGenerator(T begin, T end, IncrementT step)
+  RangeGenerator(ValType begin, ValType end, IncrementT step)
       : begin_(begin), end_(end),
         step_(step), end_index_(CalculateEndIndex(begin, end, step)) {}
   virtual ~RangeGenerator() {}
 
-  virtual ParamIteratorInterface<T>* Begin() const {
+  virtual ParamIteratorInterface<ValType>* Begin() const {
     return new Iterator(this, begin_, 0, step_);
   }
-  virtual ParamIteratorInterface<T>* End() const {
+  virtual ParamIteratorInterface<ValType>* End() const {
     return new Iterator(this, end_, end_index_, step_);
   }
 
  private:
-  class Iterator : public ParamIteratorInterface<T> {
+  class Iterator : public ParamIteratorInterface<ValType> {
    public:
-    Iterator(const ParamGeneratorInterface<T>* base, T value, int index,
+    Iterator(const ParamGeneratorInterface<ValType>* base, ValType value, int index,
              IncrementT step)
         : base_(base), value_(value), index_(index), step_(step) {}
     virtual ~Iterator() {}
 
-    virtual const ParamGeneratorInterface<T>* BaseGenerator() const {
+    virtual const ParamGeneratorInterface<ValType>* BaseGenerator() const {
       return base_;
     }
     virtual void Advance() {
       value_ = value_ + step_;
       index_++;
     }
-    virtual ParamIteratorInterface<T>* Clone() const {
+    virtual ParamIteratorInterface<ValType>* Clone() const {
       return new Iterator(*this);
     }
-    virtual const T* Current() const { return &value_; }
-    virtual bool Equals(const ParamIteratorInterface<T>& other) const {
+    virtual const ValType* Current() const { return &value_; }
+    virtual bool Equals(const ParamIteratorInterface<ValType>& other) const {
       // Having the same base generator guarantees that the other
       // iterator is of the same type and we can downcast.
       GTEST_CHECK_(BaseGenerator() == other.BaseGenerator())
@@ -10227,24 +10227,24 @@ class RangeGenerator : public ParamGeneratorInterface<T> {
 
    private:
     Iterator(const Iterator& other)
-        : ParamIteratorInterface<T>(),
+        : ParamIteratorInterface<ValType>(),
           base_(other.base_), value_(other.value_), index_(other.index_),
           step_(other.step_) {}
 
     // No implementation - assignment is unsupported.
     void operator=(const Iterator& other);
 
-    const ParamGeneratorInterface<T>* const base_;
-    T value_;
+    const ParamGeneratorInterface<ValType>* const base_;
+    ValType value_;
     int index_;
     const IncrementT step_;
   };  // class RangeGenerator::Iterator
 
-  static int CalculateEndIndex(const T& begin,
-                               const T& end,
+  static int CalculateEndIndex(const ValType& begin,
+                               const ValType& end,
                                const IncrementT& step) {
     int end_index = 0;
-    for (T i = begin; i < end; i = i + step)
+    for (ValType i = begin; i < end; i = i + step)
       end_index++;
     return end_index;
   }
@@ -10252,8 +10252,8 @@ class RangeGenerator : public ParamGeneratorInterface<T> {
   // No implementation - assignment is unsupported.
   void operator=(const RangeGenerator& other);
 
-  const T begin_;
-  const T end_;
+  const ValType begin_;
+  const ValType end_;
   const IncrementT step_;
   // The index for the end() iterator. All the elements in the generated
   // sequence are indexed (0-based) to aid iterator comparison.
@@ -10265,39 +10265,39 @@ class RangeGenerator : public ParamGeneratorInterface<T> {
 // ValuesIn() function. The elements are copied from the source range
 // since the source can be located on the stack, and the generator
 // is likely to persist beyond that stack frame.
-template <typename T>
-class ValuesInIteratorRangeGenerator : public ParamGeneratorInterface<T> {
+template <typename ValType>
+class ValuesInIteratorRangeGenerator : public ParamGeneratorInterface<ValType> {
  public:
   template <typename ForwardIterator>
   ValuesInIteratorRangeGenerator(ForwardIterator begin, ForwardIterator end)
       : container_(begin, end) {}
   virtual ~ValuesInIteratorRangeGenerator() {}
 
-  virtual ParamIteratorInterface<T>* Begin() const {
+  virtual ParamIteratorInterface<ValType>* Begin() const {
     return new Iterator(this, container_.begin());
   }
-  virtual ParamIteratorInterface<T>* End() const {
+  virtual ParamIteratorInterface<ValType>* End() const {
     return new Iterator(this, container_.end());
   }
 
  private:
-  typedef typename ::std::vector<T> ContainerType;
+  typedef typename ::std::vector<ValType> ContainerType;
 
-  class Iterator : public ParamIteratorInterface<T> {
+  class Iterator : public ParamIteratorInterface<ValType> {
    public:
-    Iterator(const ParamGeneratorInterface<T>* base,
+    Iterator(const ParamGeneratorInterface<ValType>* base,
              typename ContainerType::const_iterator iterator)
         : base_(base), iterator_(iterator) {}
     virtual ~Iterator() {}
 
-    virtual const ParamGeneratorInterface<T>* BaseGenerator() const {
+    virtual const ParamGeneratorInterface<ValType>* BaseGenerator() const {
       return base_;
     }
     virtual void Advance() {
       ++iterator_;
       value_.reset();
     }
-    virtual ParamIteratorInterface<T>* Clone() const {
+    virtual ParamIteratorInterface<ValType>* Clone() const {
       return new Iterator(*this);
     }
     // We need to use cached value referenced by iterator_ because *iterator_
@@ -10307,12 +10307,12 @@ class ValuesInIteratorRangeGenerator : public ParamGeneratorInterface<T> {
     // can advance iterator_ beyond the end of the range, and we cannot
     // detect that fact. The client code, on the other hand, is
     // responsible for not calling Current() on an out-of-range iterator.
-    virtual const T* Current() const {
+    virtual const ValType* Current() const {
       if (value_.get() == NULL)
-        value_.reset(new T(*iterator_));
+        value_.reset(new ValType(*iterator_));
       return value_.get();
     }
-    virtual bool Equals(const ParamIteratorInterface<T>& other) const {
+    virtual bool Equals(const ParamIteratorInterface<ValType>& other) const {
       // Having the same base generator guarantees that the other
       // iterator is of the same type and we can downcast.
       GTEST_CHECK_(BaseGenerator() == other.BaseGenerator())
@@ -10326,18 +10326,18 @@ class ValuesInIteratorRangeGenerator : public ParamGeneratorInterface<T> {
     Iterator(const Iterator& other)
           // The explicit constructor call suppresses a false warning
           // emitted by gcc when supplied with the -Wextra option.
-        : ParamIteratorInterface<T>(),
+        : ParamIteratorInterface<ValType>(),
           base_(other.base_),
           iterator_(other.iterator_) {}
 
-    const ParamGeneratorInterface<T>* const base_;
+    const ParamGeneratorInterface<ValType>* const base_;
     typename ContainerType::const_iterator iterator_;
     // A cached value of *iterator_. We keep it here to allow access by
     // pointer in the wrapping iterator's operator->().
     // value_ needs to be mutable to be accessed in Current().
     // Use of scoped_ptr helps manage cached value's lifetime,
     // which is bound by the lifespan of the iterator itself.
-    mutable scoped_ptr<const T> value_;
+    mutable scoped_ptr<const ValType> value_;
   };  // class ValuesInIteratorRangeGenerator::Iterator
 
   // No implementation - assignment is unsupported.
@@ -10681,8 +10681,8 @@ internal::ParamGenerator<
   typename ::testing::internal::IteratorTraits<ForwardIterator>::value_type>
 ValuesIn(ForwardIterator begin, ForwardIterator end);
 
-template <typename T, size_t N>
-internal::ParamGenerator<T> ValuesIn(const T (&array)[N]);
+template <typename ValType, size_t N>
+internal::ParamGenerator<ValType> ValuesIn(const ValType (&array)[N]);
 
 template <class Container>
 internal::ParamGenerator<typename Container::value_type> ValuesIn(
@@ -10696,8 +10696,8 @@ class ValueArray1 {
  public:
   explicit ValueArray1(T1 v1) : v1_(v1) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const { return ValuesIn(&v1_, &v1_ + 1); }
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const { return ValuesIn(&v1_, &v1_ + 1); }
 
  private:
   // No implementation - assignment is unsupported.
@@ -10711,9 +10711,9 @@ class ValueArray2 {
  public:
   ValueArray2(T1 v1, T2 v2) : v1_(v1), v2_(v2) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_)};
     return ValuesIn(array);
   }
 
@@ -10730,10 +10730,10 @@ class ValueArray3 {
  public:
   ValueArray3(T1 v1, T2 v2, T3 v3) : v1_(v1), v2_(v2), v3_(v3) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_)};
     return ValuesIn(array);
   }
 
@@ -10752,10 +10752,10 @@ class ValueArray4 {
   ValueArray4(T1 v1, T2 v2, T3 v3, T4 v4) : v1_(v1), v2_(v2), v3_(v3),
       v4_(v4) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_)};
     return ValuesIn(array);
   }
 
@@ -10775,10 +10775,10 @@ class ValueArray5 {
   ValueArray5(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) : v1_(v1), v2_(v2), v3_(v3),
       v4_(v4), v5_(v5) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_)};
     return ValuesIn(array);
   }
 
@@ -10800,11 +10800,11 @@ class ValueArray6 {
   ValueArray6(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) : v1_(v1), v2_(v2),
       v3_(v3), v4_(v4), v5_(v5), v6_(v6) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_)};
     return ValuesIn(array);
   }
 
@@ -10827,11 +10827,11 @@ class ValueArray7 {
   ValueArray7(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) : v1_(v1),
       v2_(v2), v3_(v3), v4_(v4), v5_(v5), v6_(v6), v7_(v7) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_)};
     return ValuesIn(array);
   }
 
@@ -10856,11 +10856,11 @@ class ValueArray8 {
       T8 v8) : v1_(v1), v2_(v2), v3_(v3), v4_(v4), v5_(v5), v6_(v6), v7_(v7),
       v8_(v8) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_)};
     return ValuesIn(array);
   }
 
@@ -10886,12 +10886,12 @@ class ValueArray9 {
       T9 v9) : v1_(v1), v2_(v2), v3_(v3), v4_(v4), v5_(v5), v6_(v6), v7_(v7),
       v8_(v8), v9_(v9) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_)};
     return ValuesIn(array);
   }
 
@@ -10918,12 +10918,12 @@ class ValueArray10 {
       T10 v10) : v1_(v1), v2_(v2), v3_(v3), v4_(v4), v5_(v5), v6_(v6), v7_(v7),
       v8_(v8), v9_(v9), v10_(v10) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_)};
     return ValuesIn(array);
   }
 
@@ -10952,12 +10952,12 @@ class ValueArray11 {
       T10 v10, T11 v11) : v1_(v1), v2_(v2), v3_(v3), v4_(v4), v5_(v5), v6_(v6),
       v7_(v7), v8_(v8), v9_(v9), v10_(v10), v11_(v11) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_)};
     return ValuesIn(array);
   }
 
@@ -10987,13 +10987,13 @@ class ValueArray12 {
       T10 v10, T11 v11, T12 v12) : v1_(v1), v2_(v2), v3_(v3), v4_(v4), v5_(v5),
       v6_(v6), v7_(v7), v8_(v8), v9_(v9), v10_(v10), v11_(v11), v12_(v12) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_)};
     return ValuesIn(array);
   }
 
@@ -11025,13 +11025,13 @@ class ValueArray13 {
       v5_(v5), v6_(v6), v7_(v7), v8_(v8), v9_(v9), v10_(v10), v11_(v11),
       v12_(v12), v13_(v13) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_)};
     return ValuesIn(array);
   }
 
@@ -11064,13 +11064,13 @@ class ValueArray14 {
       v4_(v4), v5_(v5), v6_(v6), v7_(v7), v8_(v8), v9_(v9), v10_(v10),
       v11_(v11), v12_(v12), v13_(v13), v14_(v14) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_)};
     return ValuesIn(array);
   }
 
@@ -11104,14 +11104,14 @@ class ValueArray15 {
       v3_(v3), v4_(v4), v5_(v5), v6_(v6), v7_(v7), v8_(v8), v9_(v9), v10_(v10),
       v11_(v11), v12_(v12), v13_(v13), v14_(v14), v15_(v15) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_)};
     return ValuesIn(array);
   }
 
@@ -11148,14 +11148,14 @@ class ValueArray16 {
       v10_(v10), v11_(v11), v12_(v12), v13_(v13), v14_(v14), v15_(v15),
       v16_(v16) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_)};
     return ValuesIn(array);
   }
 
@@ -11193,14 +11193,14 @@ class ValueArray17 {
       v8_(v8), v9_(v9), v10_(v10), v11_(v11), v12_(v12), v13_(v13), v14_(v14),
       v15_(v15), v16_(v16), v17_(v17) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_)};
     return ValuesIn(array);
   }
 
@@ -11239,15 +11239,15 @@ class ValueArray18 {
       v8_(v8), v9_(v9), v10_(v10), v11_(v11), v12_(v12), v13_(v13), v14_(v14),
       v15_(v15), v16_(v16), v17_(v17), v18_(v18) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_)};
     return ValuesIn(array);
   }
 
@@ -11287,15 +11287,15 @@ class ValueArray19 {
       v7_(v7), v8_(v8), v9_(v9), v10_(v10), v11_(v11), v12_(v12), v13_(v13),
       v14_(v14), v15_(v15), v16_(v16), v17_(v17), v18_(v18), v19_(v19) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_)};
     return ValuesIn(array);
   }
 
@@ -11337,15 +11337,15 @@ class ValueArray20 {
       v13_(v13), v14_(v14), v15_(v15), v16_(v16), v17_(v17), v18_(v18),
       v19_(v19), v20_(v20) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_)};
     return ValuesIn(array);
   }
 
@@ -11389,16 +11389,16 @@ class ValueArray21 {
       v12_(v12), v13_(v13), v14_(v14), v15_(v15), v16_(v16), v17_(v17),
       v18_(v18), v19_(v19), v20_(v20), v21_(v21) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_)};
     return ValuesIn(array);
   }
 
@@ -11443,16 +11443,16 @@ class ValueArray22 {
       v11_(v11), v12_(v12), v13_(v13), v14_(v14), v15_(v15), v16_(v16),
       v17_(v17), v18_(v18), v19_(v19), v20_(v20), v21_(v21), v22_(v22) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_)};
     return ValuesIn(array);
   }
 
@@ -11499,16 +11499,16 @@ class ValueArray23 {
       v17_(v17), v18_(v18), v19_(v19), v20_(v20), v21_(v21), v22_(v22),
       v23_(v23) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_)};
     return ValuesIn(array);
   }
 
@@ -11556,17 +11556,17 @@ class ValueArray24 {
       v16_(v16), v17_(v17), v18_(v18), v19_(v19), v20_(v20), v21_(v21),
       v22_(v22), v23_(v23), v24_(v24) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_)};
     return ValuesIn(array);
   }
 
@@ -11615,17 +11615,17 @@ class ValueArray25 {
       v15_(v15), v16_(v16), v17_(v17), v18_(v18), v19_(v19), v20_(v20),
       v21_(v21), v22_(v22), v23_(v23), v24_(v24), v25_(v25) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_)};
     return ValuesIn(array);
   }
 
@@ -11676,17 +11676,17 @@ class ValueArray26 {
       v15_(v15), v16_(v16), v17_(v17), v18_(v18), v19_(v19), v20_(v20),
       v21_(v21), v22_(v22), v23_(v23), v24_(v24), v25_(v25), v26_(v26) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_)};
     return ValuesIn(array);
   }
 
@@ -11739,18 +11739,18 @@ class ValueArray27 {
       v20_(v20), v21_(v21), v22_(v22), v23_(v23), v24_(v24), v25_(v25),
       v26_(v26), v27_(v27) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_)};
     return ValuesIn(array);
   }
 
@@ -11804,18 +11804,18 @@ class ValueArray28 {
       v19_(v19), v20_(v20), v21_(v21), v22_(v22), v23_(v23), v24_(v24),
       v25_(v25), v26_(v26), v27_(v27), v28_(v28) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_)};
     return ValuesIn(array);
   }
 
@@ -11870,18 +11870,18 @@ class ValueArray29 {
       v18_(v18), v19_(v19), v20_(v20), v21_(v21), v22_(v22), v23_(v23),
       v24_(v24), v25_(v25), v26_(v26), v27_(v27), v28_(v28), v29_(v29) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_)};
     return ValuesIn(array);
   }
 
@@ -11938,19 +11938,19 @@ class ValueArray30 {
       v23_(v23), v24_(v24), v25_(v25), v26_(v26), v27_(v27), v28_(v28),
       v29_(v29), v30_(v30) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_)};
     return ValuesIn(array);
   }
 
@@ -12009,19 +12009,19 @@ class ValueArray31 {
       v23_(v23), v24_(v24), v25_(v25), v26_(v26), v27_(v27), v28_(v28),
       v29_(v29), v30_(v30), v31_(v31) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_)};
     return ValuesIn(array);
   }
 
@@ -12081,19 +12081,19 @@ class ValueArray32 {
       v22_(v22), v23_(v23), v24_(v24), v25_(v25), v26_(v26), v27_(v27),
       v28_(v28), v29_(v29), v30_(v30), v31_(v31), v32_(v32) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_)};
     return ValuesIn(array);
   }
 
@@ -12155,20 +12155,20 @@ class ValueArray33 {
       v27_(v27), v28_(v28), v29_(v29), v30_(v30), v31_(v31), v32_(v32),
       v33_(v33) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_)};
     return ValuesIn(array);
   }
 
@@ -12231,20 +12231,20 @@ class ValueArray34 {
       v27_(v27), v28_(v28), v29_(v29), v30_(v30), v31_(v31), v32_(v32),
       v33_(v33), v34_(v34) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_)};
     return ValuesIn(array);
   }
 
@@ -12308,20 +12308,20 @@ class ValueArray35 {
       v26_(v26), v27_(v27), v28_(v28), v29_(v29), v30_(v30), v31_(v31),
       v32_(v32), v33_(v33), v34_(v34), v35_(v35) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_)};
     return ValuesIn(array);
   }
 
@@ -12387,21 +12387,21 @@ class ValueArray36 {
       v25_(v25), v26_(v26), v27_(v27), v28_(v28), v29_(v29), v30_(v30),
       v31_(v31), v32_(v32), v33_(v33), v34_(v34), v35_(v35), v36_(v36) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_)};
     return ValuesIn(array);
   }
 
@@ -12469,21 +12469,21 @@ class ValueArray37 {
       v30_(v30), v31_(v31), v32_(v32), v33_(v33), v34_(v34), v35_(v35),
       v36_(v36), v37_(v37) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_), static_cast<T>(v37_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_), static_cast<ValType>(v37_)};
     return ValuesIn(array);
   }
 
@@ -12552,21 +12552,21 @@ class ValueArray38 {
       v29_(v29), v30_(v30), v31_(v31), v32_(v32), v33_(v33), v34_(v34),
       v35_(v35), v36_(v36), v37_(v37), v38_(v38) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_), static_cast<ValType>(v37_), static_cast<ValType>(v38_)};
     return ValuesIn(array);
   }
 
@@ -12636,22 +12636,22 @@ class ValueArray39 {
       v29_(v29), v30_(v30), v31_(v31), v32_(v32), v33_(v33), v34_(v34),
       v35_(v35), v36_(v36), v37_(v37), v38_(v38), v39_(v39) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
-        static_cast<T>(v39_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_), static_cast<ValType>(v37_), static_cast<ValType>(v38_),
+        static_cast<ValType>(v39_)};
     return ValuesIn(array);
   }
 
@@ -12723,22 +12723,22 @@ class ValueArray40 {
       v34_(v34), v35_(v35), v36_(v36), v37_(v37), v38_(v38), v39_(v39),
       v40_(v40) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
-        static_cast<T>(v39_), static_cast<T>(v40_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_), static_cast<ValType>(v37_), static_cast<ValType>(v38_),
+        static_cast<ValType>(v39_), static_cast<ValType>(v40_)};
     return ValuesIn(array);
   }
 
@@ -12812,22 +12812,22 @@ class ValueArray41 {
       v33_(v33), v34_(v34), v35_(v35), v36_(v36), v37_(v37), v38_(v38),
       v39_(v39), v40_(v40), v41_(v41) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
-        static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_), static_cast<ValType>(v37_), static_cast<ValType>(v38_),
+        static_cast<ValType>(v39_), static_cast<ValType>(v40_), static_cast<ValType>(v41_)};
     return ValuesIn(array);
   }
 
@@ -12902,23 +12902,23 @@ class ValueArray42 {
       v33_(v33), v34_(v34), v35_(v35), v36_(v36), v37_(v37), v38_(v38),
       v39_(v39), v40_(v40), v41_(v41), v42_(v42) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
-        static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
-        static_cast<T>(v42_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_), static_cast<ValType>(v37_), static_cast<ValType>(v38_),
+        static_cast<ValType>(v39_), static_cast<ValType>(v40_), static_cast<ValType>(v41_),
+        static_cast<ValType>(v42_)};
     return ValuesIn(array);
   }
 
@@ -12994,23 +12994,23 @@ class ValueArray43 {
       v32_(v32), v33_(v33), v34_(v34), v35_(v35), v36_(v36), v37_(v37),
       v38_(v38), v39_(v39), v40_(v40), v41_(v41), v42_(v42), v43_(v43) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
-        static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
-        static_cast<T>(v42_), static_cast<T>(v43_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_), static_cast<ValType>(v37_), static_cast<ValType>(v38_),
+        static_cast<ValType>(v39_), static_cast<ValType>(v40_), static_cast<ValType>(v41_),
+        static_cast<ValType>(v42_), static_cast<ValType>(v43_)};
     return ValuesIn(array);
   }
 
@@ -13088,23 +13088,23 @@ class ValueArray44 {
       v37_(v37), v38_(v38), v39_(v39), v40_(v40), v41_(v41), v42_(v42),
       v43_(v43), v44_(v44) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
-        static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
-        static_cast<T>(v42_), static_cast<T>(v43_), static_cast<T>(v44_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_), static_cast<ValType>(v37_), static_cast<ValType>(v38_),
+        static_cast<ValType>(v39_), static_cast<ValType>(v40_), static_cast<ValType>(v41_),
+        static_cast<ValType>(v42_), static_cast<ValType>(v43_), static_cast<ValType>(v44_)};
     return ValuesIn(array);
   }
 
@@ -13183,24 +13183,24 @@ class ValueArray45 {
       v36_(v36), v37_(v37), v38_(v38), v39_(v39), v40_(v40), v41_(v41),
       v42_(v42), v43_(v43), v44_(v44), v45_(v45) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
-        static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
-        static_cast<T>(v42_), static_cast<T>(v43_), static_cast<T>(v44_),
-        static_cast<T>(v45_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_), static_cast<ValType>(v37_), static_cast<ValType>(v38_),
+        static_cast<ValType>(v39_), static_cast<ValType>(v40_), static_cast<ValType>(v41_),
+        static_cast<ValType>(v42_), static_cast<ValType>(v43_), static_cast<ValType>(v44_),
+        static_cast<ValType>(v45_)};
     return ValuesIn(array);
   }
 
@@ -13281,24 +13281,24 @@ class ValueArray46 {
       v35_(v35), v36_(v36), v37_(v37), v38_(v38), v39_(v39), v40_(v40),
       v41_(v41), v42_(v42), v43_(v43), v44_(v44), v45_(v45), v46_(v46) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
-        static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
-        static_cast<T>(v42_), static_cast<T>(v43_), static_cast<T>(v44_),
-        static_cast<T>(v45_), static_cast<T>(v46_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_), static_cast<ValType>(v37_), static_cast<ValType>(v38_),
+        static_cast<ValType>(v39_), static_cast<ValType>(v40_), static_cast<ValType>(v41_),
+        static_cast<ValType>(v42_), static_cast<ValType>(v43_), static_cast<ValType>(v44_),
+        static_cast<ValType>(v45_), static_cast<ValType>(v46_)};
     return ValuesIn(array);
   }
 
@@ -13381,24 +13381,24 @@ class ValueArray47 {
       v41_(v41), v42_(v42), v43_(v43), v44_(v44), v45_(v45), v46_(v46),
       v47_(v47) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
-        static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
-        static_cast<T>(v42_), static_cast<T>(v43_), static_cast<T>(v44_),
-        static_cast<T>(v45_), static_cast<T>(v46_), static_cast<T>(v47_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_), static_cast<ValType>(v37_), static_cast<ValType>(v38_),
+        static_cast<ValType>(v39_), static_cast<ValType>(v40_), static_cast<ValType>(v41_),
+        static_cast<ValType>(v42_), static_cast<ValType>(v43_), static_cast<ValType>(v44_),
+        static_cast<ValType>(v45_), static_cast<ValType>(v46_), static_cast<ValType>(v47_)};
     return ValuesIn(array);
   }
 
@@ -13482,25 +13482,25 @@ class ValueArray48 {
       v40_(v40), v41_(v41), v42_(v42), v43_(v43), v44_(v44), v45_(v45),
       v46_(v46), v47_(v47), v48_(v48) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
-        static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
-        static_cast<T>(v42_), static_cast<T>(v43_), static_cast<T>(v44_),
-        static_cast<T>(v45_), static_cast<T>(v46_), static_cast<T>(v47_),
-        static_cast<T>(v48_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_), static_cast<ValType>(v37_), static_cast<ValType>(v38_),
+        static_cast<ValType>(v39_), static_cast<ValType>(v40_), static_cast<ValType>(v41_),
+        static_cast<ValType>(v42_), static_cast<ValType>(v43_), static_cast<ValType>(v44_),
+        static_cast<ValType>(v45_), static_cast<ValType>(v46_), static_cast<ValType>(v47_),
+        static_cast<ValType>(v48_)};
     return ValuesIn(array);
   }
 
@@ -13585,25 +13585,25 @@ class ValueArray49 {
       v39_(v39), v40_(v40), v41_(v41), v42_(v42), v43_(v43), v44_(v44),
       v45_(v45), v46_(v46), v47_(v47), v48_(v48), v49_(v49) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
-        static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
-        static_cast<T>(v42_), static_cast<T>(v43_), static_cast<T>(v44_),
-        static_cast<T>(v45_), static_cast<T>(v46_), static_cast<T>(v47_),
-        static_cast<T>(v48_), static_cast<T>(v49_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_), static_cast<ValType>(v37_), static_cast<ValType>(v38_),
+        static_cast<ValType>(v39_), static_cast<ValType>(v40_), static_cast<ValType>(v41_),
+        static_cast<ValType>(v42_), static_cast<ValType>(v43_), static_cast<ValType>(v44_),
+        static_cast<ValType>(v45_), static_cast<ValType>(v46_), static_cast<ValType>(v47_),
+        static_cast<ValType>(v48_), static_cast<ValType>(v49_)};
     return ValuesIn(array);
   }
 
@@ -13689,25 +13689,25 @@ class ValueArray50 {
       v39_(v39), v40_(v40), v41_(v41), v42_(v42), v43_(v43), v44_(v44),
       v45_(v45), v46_(v46), v47_(v47), v48_(v48), v49_(v49), v50_(v50) {}
 
-  template <typename T>
-  operator ParamGenerator<T>() const {
-    const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
-        static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
-        static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
-        static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
-        static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
-        static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
-        static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
-        static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
-        static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
-        static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
-        static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
-        static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
-        static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
-        static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
-        static_cast<T>(v42_), static_cast<T>(v43_), static_cast<T>(v44_),
-        static_cast<T>(v45_), static_cast<T>(v46_), static_cast<T>(v47_),
-        static_cast<T>(v48_), static_cast<T>(v49_), static_cast<T>(v50_)};
+  template <typename ValType>
+  operator ParamGenerator<ValType>() const {
+    const ValType array[] = {static_cast<ValType>(v1_), static_cast<ValType>(v2_),
+        static_cast<ValType>(v3_), static_cast<ValType>(v4_), static_cast<ValType>(v5_),
+        static_cast<ValType>(v6_), static_cast<ValType>(v7_), static_cast<ValType>(v8_),
+        static_cast<ValType>(v9_), static_cast<ValType>(v10_), static_cast<ValType>(v11_),
+        static_cast<ValType>(v12_), static_cast<ValType>(v13_), static_cast<ValType>(v14_),
+        static_cast<ValType>(v15_), static_cast<ValType>(v16_), static_cast<ValType>(v17_),
+        static_cast<ValType>(v18_), static_cast<ValType>(v19_), static_cast<ValType>(v20_),
+        static_cast<ValType>(v21_), static_cast<ValType>(v22_), static_cast<ValType>(v23_),
+        static_cast<ValType>(v24_), static_cast<ValType>(v25_), static_cast<ValType>(v26_),
+        static_cast<ValType>(v27_), static_cast<ValType>(v28_), static_cast<ValType>(v29_),
+        static_cast<ValType>(v30_), static_cast<ValType>(v31_), static_cast<ValType>(v32_),
+        static_cast<ValType>(v33_), static_cast<ValType>(v34_), static_cast<ValType>(v35_),
+        static_cast<ValType>(v36_), static_cast<ValType>(v37_), static_cast<ValType>(v38_),
+        static_cast<ValType>(v39_), static_cast<ValType>(v40_), static_cast<ValType>(v41_),
+        static_cast<ValType>(v42_), static_cast<ValType>(v43_), static_cast<ValType>(v44_),
+        static_cast<ValType>(v45_), static_cast<ValType>(v46_), static_cast<ValType>(v47_),
+        static_cast<ValType>(v48_), static_cast<ValType>(v49_), static_cast<ValType>(v50_)};
     return ValuesIn(array);
   }
 
@@ -15806,14 +15806,14 @@ namespace testing {
 //   * Condition start < end must be satisfied in order for resulting sequences
 //     to contain any elements.
 //
-template <typename T, typename IncrementT>
-internal::ParamGenerator<T> Range(T start, T end, IncrementT step) {
-  return internal::ParamGenerator<T>(
-      new internal::RangeGenerator<T, IncrementT>(start, end, step));
+template <typename ValType, typename IncrementT>
+internal::ParamGenerator<ValType> Range(ValType start, ValType end, IncrementT step) {
+  return internal::ParamGenerator<ValType>(
+      new internal::RangeGenerator<ValType, IncrementT>(start, end, step));
 }
 
-template <typename T>
-internal::ParamGenerator<T> Range(T start, T end) {
+template <typename ValType>
+internal::ParamGenerator<ValType> Range(ValType start, ValType end) {
   return Range(start, end, 1);
 }
 
@@ -15882,8 +15882,8 @@ ValuesIn(ForwardIterator begin, ForwardIterator end) {
       new internal::ValuesInIteratorRangeGenerator<ParamType>(begin, end));
 }
 
-template <typename T, size_t N>
-internal::ParamGenerator<T> ValuesIn(const T (&array)[N]) {
+template <typename ValType, size_t N>
+internal::ParamGenerator<ValType> ValuesIn(const ValType (&array)[N]) {
   return ValuesIn(array, array + N);
 }
 
@@ -17694,7 +17694,7 @@ class GTEST_API_ AssertionResult {
   const char* failure_message() const { return message(); }
 
   // Streams a custom failure message into this object.
-  template <typename T> AssertionResult& operator<<(const T& value) {
+  template <typename ValType> AssertionResult& operator<<(const ValType& value) {
     AppendMessage(Message() << value);
     return *this;
   }
@@ -18942,7 +18942,7 @@ class EqHelper<true> {
 
   // This version will be picked when the second argument to ASSERT_EQ() is a
   // pointer, e.g. ASSERT_EQ(NULL, a_pointer).
-  template <typename T>
+  template <typename ValType>
   static AssertionResult Compare(
       const char* expected_expression,
       const char* actual_expression,
@@ -18953,10 +18953,10 @@ class EqHelper<true> {
       // non-pointer argument" (even a deduced integral argument), so the old
       // implementation caused warnings in user code.
       Secret* /* expected (NULL) */,
-      T* actual) {
+      ValType* actual) {
     // We already know that 'expected' is a null pointer.
     return CmpHelperEQ(expected_expression, actual_expression,
-                       static_cast<T*>(NULL), actual);
+                       static_cast<ValType*>(NULL), actual);
   }
 };
 
@@ -19211,10 +19211,10 @@ class GTEST_API_ AssertHelper {
 // }
 // INSTANTIATE_TEST_CASE_P(OneToTenRange, FooTest, ::testing::Range(1, 10));
 
-template <typename T>
+template <typename ValType>
 class WithParamInterface {
  public:
-  typedef T ParamType;
+  typedef ValType ParamType;
   virtual ~WithParamInterface() {}
 
   // The current parameter value. Is also available in the test fixture's
@@ -19243,14 +19243,14 @@ class WithParamInterface {
   template <class TestClass> friend class internal::ParameterizedTestFactory;
 };
 
-template <typename T>
-const T* WithParamInterface<T>::parameter_ = NULL;
+template <typename ValType>
+const ValType* WithParamInterface<ValType>::parameter_ = NULL;
 
 // Most value-parameterized classes can ignore the existence of
 // WithParamInterface, and can just inherit from ::testing::TestWithParam.
 
-template <typename T>
-class TestWithParam : public Test, public WithParamInterface<T> {
+template <typename ValType>
+class TestWithParam : public Test, public WithParamInterface<ValType> {
 };
 
 #endif  // GTEST_HAS_PARAM_TEST

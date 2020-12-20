@@ -1,116 +1,135 @@
 #include <../gtest/gtest.h>
 #include "MultiStack.h"
 
-TEST(MultiStack, can_create_MultiStack_with_positive_length) {
-	ASSERT_NO_THROW(MultiStack<int> tmp(5, 4));
+TEST(NewStack, Newstack){
+	int* tmp = 0;
+
+	ASSERT_NO_THROW(TNewStack<int>(5, tmp));
 }
 
-TEST(MultiStack, cant_create_MultiStack_with_null) {
-	ASSERT_ANY_THROW(MultiStack<int> tmp(0));
+TEST(NewStack, NewstackNegativeLength){
+	int* tmp = 0;
+	ASSERT_ANY_THROW(TNewStack<int>(-5, tmp));
 }
 
-TEST(MultiStack, check_empty_MultiStack) {
-	MultiStack<int> tmp(5, 4);
-	EXPECT_EQ(true, tmp.IsEmpty(1));
+TEST(NewStack, NewstackCOP){
+	int* tmp = 0;
+	TNewStack<int> newstack1(5, tmp);
+
+	ASSERT_NO_THROW(TNewStack<int> newstack2(newstack1));
 }
 
-TEST(MultiStack, check_for_non_existent_empty_MultiStack) {
-	MultiStack<int> tmp(5, 4);
-	ASSERT_ANY_THROW(tmp.IsEmpty(5));
+TEST(NewStack, SetMultistack){
+	int* tmp1 = new int[5];
+	int* tmp2 = new int[5];
+	TNewStack<int> newstack(5, tmp1);
+
+	newstack.SetM(6, tmp2);
+
+	EXPECT_EQ(6, newstack.GetLength());
 }
 
-TEST(MultiStack, check_negative_empty_MultiStack) {
-	MultiStack<int> tmp(5, 4);
-	ASSERT_ANY_THROW(tmp.IsEmpty(-5));
+TEST(NewStack, GetFreeMem){
+	int* tmp = new int[5];
+	TNewStack<int> newstack(5, tmp);
+
+	newstack.Push(1);
+	newstack.Push(2);
+	newstack.Push(3);
+
+	EXPECT_EQ(2, newstack.GetFreeMem());
 }
 
-TEST(MultiStack, check_IsFull_MultiStack) {
-	MultiStack<int> tmp(5, 4);
-	EXPECT_EQ(false, tmp.IsFull(1));
+TEST(NewStack, GetLength){
+	int* tmp = 0;
+	TNewStack<int> newstack(5, tmp);
+
+	EXPECT_EQ(5, newstack.GetLength());
 }
 
-TEST(MultiStack, check_for_non_existent_IsFull_MultiStack) {
-	MultiStack<int> tmp(5, 4);
-	ASSERT_ANY_THROW(tmp.IsFull(5));
+TEST(MultiStack, Multistack){
+	ASSERT_NO_THROW(TMStack<int>(5, 10));
 }
 
-TEST(MultiStack, check_negative_IsFull_MultiStack) {
-	MultiStack<int> tmp(5, 4);
-	ASSERT_ANY_THROW(tmp.IsFull(-5));
+TEST(MultiStack, MultistackNegariveLength){
+	ASSERT_ANY_THROW(TMStack<int>(5, -10));
 }
 
-TEST(MultiStack, can_push_with_mem) {
-	MultiStack<int> tmp(5, 4);
-	ASSERT_NO_THROW(tmp.PushMultiStack(10, 1));
+TEST(MultiStack, MultistackCOP){
+	TMStack<int> multistack1(5, 10);
+
+	ASSERT_NO_THROW(TMStack<int>multistack2(multistack1));
 }
 
-TEST(MultiStack, cant_push_with_no_mem) {
-	MultiStack<int> tmp(5, 4);
-	ASSERT_ANY_THROW(tmp.PushMultiStack(10, 5));
+TEST(MultiStack, PushElem){
+	TMStack<int> multistack(5, 25);
+
+	ASSERT_NO_THROW(multistack.SetElem(1, 2));
 }
 
-TEST(MultiStack, can_copy_stack) {
-	MultiStack<int> tmp1(5, 4);
-	tmp1.PushMultiStack(10, 1);
+TEST(MultiStack, GetLength){
+	TMStack<int> multistack(5, 10);
 
-	ASSERT_NO_THROW(MultiStack<int> tmp2(tmp1));
+	EXPECT_EQ(10, multistack.GetLength());
 }
 
-TEST(MultiStack, can_assing_stack) {
-	MultiStack<int> tmp1(5, 4);
-	tmp1.PushMultiStack(10, 1);
-	MultiStack<int> tmp2(5, 4);
-	tmp2 = tmp1;
+TEST(MultiStack, GetElem){
+	TMStack<int> multistack(5, 10);
 
-	EXPECT_EQ(10, tmp2.GetMultiStack(1));
+	multistack.SetElem(1, 6);
+
+	EXPECT_EQ(6, multistack.GetElem(1));
 }
 
-TEST(MultiStack, can_get) {
-	MultiStack<int> tmp(5, 4);
-	tmp.PushMultiStack(10, 1);
+TEST(MultiStack, Repack){
+	TMStack<int> multistack(2, 6);
 
-	ASSERT_NO_THROW(tmp.GetMultiStack(1));
+	multistack.SetElem(0, 6);
+	multistack.SetElem(0, 5);
+	multistack.SetElem(1, 2);
+
+	ASSERT_NO_THROW(multistack.SetElem(0, 4));
+	EXPECT_EQ(4, multistack.GetElem(0));
 }
 
-TEST(MultiStack, cant_get_nonexistent) {
-	MultiStack<int> tmp(5, 4);
-	tmp.PushMultiStack(10, 1);
+TEST(MultiStack, IsEmpty){
+	TMStack<int> multistack(5, 10);
 
-	ASSERT_ANY_THROW(tmp.GetMultiStack(-4));
+	ASSERT_TRUE(multistack.IsEmpty(0));
 }
 
-TEST(MultiStack, cant_get_negative) {
-	MultiStack<int> tmp1(5, 4);
-	tmp1.PushMultiStack(10, 1);
+TEST(MultiStack, NoIsEmpty){
+	TMStack<int> multistack(5, 10);
 
-	ASSERT_ANY_THROW(tmp1.GetMultiStack(5));
+	multistack.SetElem(0, 1);
+
+	ASSERT_FALSE(multistack.IsEmpty(0));
 }
 
-TEST(MultiStack, can_GetLen) {
-	MultiStack<int> tmp1(5, 4);
-	ASSERT_NO_THROW(tmp1.GetLen());
+TEST(MultiStack, IsFull){
+	TMStack<int> multistack(5, 25);
+
+	multistack.SetElem(0, 1);
+	multistack.SetElem(0, 2);
+	multistack.SetElem(0, 3);
+	multistack.SetElem(0, 4);
+	multistack.SetElem(0, 5);
+
+	ASSERT_TRUE(multistack.IsFull(0));
 }
 
-TEST(MultiStack, can_Relength) {
-	MultiStack<int> tmp1(1, 1);
-	tmp1.PushMultiStack(10, 0);
+TEST(MultiStack, NoIsFull){
+	TMStack<int> multistack(5);
 
-	ASSERT_NO_THROW(tmp1.Relength(5, 0));
+	ASSERT_FALSE(multistack.IsFull(0));
 }
 
-TEST(MultiStack, cant_Relength_negative) {
-	MultiStack<int> tmp1(1, 1);
-	tmp1.PushMultiStack(10, 0);
+TEST(MultiStack, GetElement){
+	TMStack<int> multistack(5, 10);
 
-	ASSERT_ANY_THROW(tmp1.Relength(-1, 0));
-}
+	multistack.SetElem(0, 10);
+	multistack.SetElem(0, 9);
+	multistack.SetElem(0, 8);
 
-TEST(MultiStack, can_Relocation) {
-	MultiStack<int> tmp(9, 3);
-	tmp.PushMultiStack(11, 0);
-	tmp.PushMultiStack(12, 1);
-	tmp.PushMultiStack(12, 1);
-	tmp.PushMultiStack(12, 1);
-
-	ASSERT_NO_THROW(tmp.PushMultiStack(15, 1));
+	EXPECT_EQ(8, multistack.GetElem(0));
 }

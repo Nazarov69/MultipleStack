@@ -1,158 +1,142 @@
-#ifndef _Stack_
-#define _Stack_
+#pragma once
 #include <iostream>
-using namespace std;
+#include "MyException.h"
+
 
 template <class ValType>
-class Stack {
+class TStack{
 protected:
     int top;
     int length;
-    ValType* pStack;
+    ValType* mas;
 public:
-    Stack(int length = 1);
-    Stack(Stack<ValType>& v);
-    void PushStack(ValType temp);
-    ValType GetStack();
-    ~Stack();
+    TStack(int length = 0);
+    TStack(TStack<ValType>& v);
+    ~TStack();
 
-    Stack<ValType>& operator=(Stack<ValType>& v);
+    void Push(ValType elem);
+    ValType Get();
+    ValType ShowTop();
+    int GetLength();
 
-    bool IsFull();
     bool IsEmpty();
+    bool IsFull();
 
-    template <class ValType1>
-    friend ostream& operator<< (ostream& ostr, const Stack<ValType1>& A);
-    template <class ValType1>
-    friend istream& operator >> (istream& istr, Stack<ValType1>& A);
-
-    int GetLength() {return length;}
-    int GetTop() {return top;}
-
-    void SetpStack(ValType* pStack, int length, int top);
-    void Relength(int length);
+    TStack<ValType>& operator=(const TStack<ValType>& v);
+    int operator!=(const TStack<ValType>& stack) const;
+    int operator==(const TStack<ValType>& stack) const;
 };
 
-template<class ValType>
-inline void Stack<ValType>::SetpStack(ValType* pStack, int length, int top){
-    if (pStack != 0)
-        delete[] pStack;
-    
-    this->length = length;
-    this->pStack = pStack;
-    this->top = top;
-}
-
-template<class ValType>
-inline void Stack<ValType>::Relength(int length) {
-    if (length <= 0)  throw logic_error("Input error: invalide value of Stack length in Resize");
-
-    if (pStack == 0) {
-        delete[] pStack;
-        pStack = new ValType[length];
-    }
-
-    else {
-        ValType* temp = new ValType[length];
-        for (int i = 0; i < GetTop(); i++)
-            temp[i] = GetStack();
-
-        delete[] pStack;
-
-        pStack = new ValType[length];
-        for (int i = 0; i < 1; i++)
-            pStack[i] = temp[i];
-    }
-}
-
-
-template <class ValType1>
-ostream& operator<< (ostream& ostr, const Stack<ValType1>& p) {
-    for (int i = 0; i < p.length; i++)
-        ostr << p.pStack[i] << endl;
-    return ostr;
-}
-
-template <class ValType1>
-istream& operator >> (istream& istr, Stack<ValType1>& p) {
-    int count;
-    istr >> count;
-    for (int i = 0; i < count; i++) {
-        ValType1 time;
-        istr >> time;
-        p.PushStack(time);
-    }
-    return istr;
-}
-
 template <class ValType>
-Stack<ValType>::Stack(int length = 1) {
-    if (length > 0) {
+TStack<ValType>::TStack(int length){
+    if (length < 0)
+        throw TMyException("Error! Size must be positive!\n");
+    else if (length == 0){
+        length = 0;
+        top = -1;
+        mas = nullptr;
+    }
+    else{
         this->length = length;
-        pStack = new ValType[length];
+        top = 0;
+        mas = new ValType[length];
         for (int i = 0; i < length; i++)
-            pStack[i] = 0;
-        this->top = -1;
+            mas[i] = 0;
     }
-    else
-        throw logic_error("Input error: invalide value of Stack length in constructor");
 }
 
 template <class ValType>
-Stack<ValType>::Stack(Stack<ValType>& v) {
-    length = v.length;
-    top = v.top;
-    pStack = new ValType[length];
-    for (int i = 0; i < top + 1; i++)
-        pStack[i] = v.pStack[i];
-}
-
-template <class T>
-Stack<T>::~Stack(){
-    length = 0;
-    if (pStack != 0) 
-        delete[] pStack;
+TStack<ValType>::TStack(TStack<ValType>& v){
+    this->length = v.length;
+    this->top = v.top;
+    if (length == 0)
+        mas = nullptr;
+    else{
+        mas = new ValType[length];
+        for (int i = 0; i < length; i++)
+            this->mas[i] = v.mas[i];
+    }
 }
 
 template <class ValType>
-Stack<ValType>& Stack<ValType>::operator=(Stack<ValType>& v){
-    if (this == &v)
-        return *this;
-    length = v.length;
-    top = v.top;
-    delete[] pStack;
+TStack<ValType>::~TStack(){
+    if (mas != 0)
+        delete[] mas;
+    mas = nullptr;
+}
 
-    pStack = new ValType[length];
-    for (int i = 0; i < top + 1; i++)
-        pStack[i] = v.pStack[i];
+template <class ValType>
+TStack<ValType>& TStack<ValType>::operator=(const TStack<ValType>& v){
+    if (this != &v){
+        delete[] mas;
+        this->top = v.top;
+        this->length = v.length;
+        mas = new ValType[length];
+        for (int i = 0; i < length; i++)
+            this->mas[i] = v.mas[i];
+    }
     return *this;
 }
 
-template<class ValType>
-inline bool Stack<ValType>::IsFull(){
+template <class ValType>
+ValType TStack<ValType>::ShowTop(){
+    if (IsEmpty())
+        throw TMyException("Error! Stack is empty!\n");
+    else
+        return mas[top - 1];
+}
+
+template <class ValType>
+int TStack<ValType>::GetLength(){
+    return length;
+}
+
+template <class ValType>
+void TStack<ValType>::Push(ValType elem){
+    if (IsFull())
+        throw TMyException("Error! Stack is full!\n");
+    else{
+        top++;
+        mas[top] = elem;
+    }
+}
+
+template <class ValType>
+ValType TStack<ValType>::Get(){
+    if (IsEmpty())
+        throw TMyException("Error! Stack is empty!\n");
+    else{
+        return mas[top];
+        top--;
+    }
+}
+
+template <class ValType>
+bool TStack<ValType>::IsEmpty(){
+    return (top == -1);
+    
+}
+
+template <class ValType>
+bool TStack<ValType>::IsFull(){
     return (top >= length - 1);
+  
 }
 
-template<class ValType>
-inline bool Stack<ValType>::IsEmpty(){
-    return (top == -1)
+template <class ValType>
+int TStack<ValType>::operator!=(const TStack<ValType>& v) const
+{
+    return !(this == &v);
 }
 
-
-template<class ValType>
-inline void Stack<ValType>::PushStack(ValType temp) {
-    if (top >= length - 1)
-        throw logic_error("Input error: invalide value of Stack length in PushStack");
-    top++;
-    pStack[top] = temp;
+template <class ValType>
+int TStack<ValType>::operator==(const TStack<ValType>& v) const{
+    if (this->top != v.top)
+        return 0;
+    if (this->length != v.length)
+        return 0;
+    for (int i = 0; i < top + 1; i++)
+        if (this->mas[i] != v.mas[i])
+            return 0;
+    return 1;
 }
-
-template<class ValType>
-inline ValType Stack<ValType>::GetStack() {
-    if (top == -1)
-        throw logic_error("Input error: invalide value of Stack length in GetStack");
-    ValType temp = pStack[top];
-    top--;
-    return temp;
-}
-#endif

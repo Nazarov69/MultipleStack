@@ -736,8 +736,8 @@ inline void Shuffle(internal::Random* random, std::vector<E>* v) {
 
 // A function for deleting an object.  Handy for being used as a
 // functor.
-template <typename T>
-static void Delete(T* x) {
+template <typename ValType>
+static void Delete(ValType* x) {
   delete x;
 }
 
@@ -3539,9 +3539,9 @@ GoogleTestFailureException::GoogleTestFailureException(
 // SEH exception.  (Microsoft compilers cannot handle SEH and C++
 // exceptions in the same function.  Therefore, we provide a separate
 // wrapper function for handling SEH exceptions.)
-template <class T, typename Result>
+template <class ValType, typename Result>
 Result HandleSehExceptionsInMethodIfSupported(
-    T* object, Result (T::*method)(), const char* location) {
+    ValType* object, Result (ValType::*method)(), const char* location) {
 #if GTEST_HAS_SEH
   __try {
     return (object->*method)();
@@ -3566,9 +3566,9 @@ Result HandleSehExceptionsInMethodIfSupported(
 // Runs the given method and catches and reports C++ and/or SEH-style
 // exceptions, if they are supported; returns the 0-value for type
 // Result in case of an SEH exception.
-template <class T, typename Result>
+template <class ValType, typename Result>
 Result HandleExceptionsInMethodIfSupported(
-    T* object, Result (T::*method)(), const char* location) {
+    ValType* object, Result (ValType::*method)(), const char* location) {
   // NOTE: The user code can affect the way in which Google Test handles
   // exceptions by setting GTEST_FLAG(catch_exceptions), but only before
   // RUN_ALL_TESTS() starts. It is technically possible to check the flag
